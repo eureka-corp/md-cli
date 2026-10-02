@@ -1,0 +1,50 @@
+version: 2
+project_name: md
+
+builds:
+  - main: .
+    binary: md
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w
+      - -X github.com/eureka-corp/md-cli/internal/buildinfo.Version={{.Version}}
+      - -X github.com/eureka-corp/md-cli/internal/buildinfo.Commit={{.ShortCommit}}
+      - -X github.com/eureka-corp/md-cli/internal/buildinfo.Time={{.Timestamp}}
+
+archives:
+  - formats: [tar.gz]
+    # `md update` finds the asset by OS and arch in this name.
+    name_template: "md_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files: [README.md]
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+release:
+  extra_files:
+    - glob: install.sh
+  footer: |
+    **Install:** `curl -fsSL https://github.com/eureka-corp/md-cli/releases/latest/download/install.sh | bash`, or `md update` if already installed.
+
+    **Full Changelog**: https://github.com/eureka-corp/md-cli/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+changelog:
+  sort: asc
+  groups:
+    - title: New Features
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: Bug Fixes
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: Maintenance
+      order: 999
+  filters:
+    exclude: ['^docs:', '^test:', '^ci:', '^Merge']

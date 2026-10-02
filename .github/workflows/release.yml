@@ -1,0 +1,65 @@
+name: Release
+
+# Merging a PR into main tags the next version and publishes a release. The
+# bump comes from the PR's label: "major", "minor", otherwise patch. A PR
+# labelled "no-release" ships nothing. Pushing a v* tag by hand also releases.
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  push:
+    tags: ['v*']
+
+concurrency: release
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    if: >-
+      github.event_name == 'pull_request' && github.event.pull_request.merged == true &&
+      !contains(github.event.pull_request.labels.*.name, 'no-release')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.next.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: next
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          latest=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1)
+          IFS='.' read -r major minor patch <<< "${latest:-v0.0.0}"
+          major=${major#v}
+          if echo "$LABELS" | grep -q '"major"'; then major=$((major + 1)); minor=0; patch=0
+          elif echo "$LABELS" | grep -q '"minor"'; then minor=$((minor + 1)); patch=0
+          else patch=$((patch + 1)); fi
+          echo "version=v${major}.${minor}.${patch}" >> "$GITHUB_OUTPUT"
+      - env:
+          VERSION: ${{ steps.next.outputs.version }}
+        run: |
+          git tag "$VERSION" "${{ github.event.pull_request.merge_commit_sha }}"
+          git push origin "$VERSION"
+
+  release:
+    needs: tag
+    if: always() && (needs.tag.result == 'success' || github.event_name == 'push')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.tag.outputs.version || github.ref }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test ./...
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: '~> v2'
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
