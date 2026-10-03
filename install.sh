@@ -17,7 +17,12 @@ case "$(uname -m)" in
   *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
 esac
 
-tag="${MD_VERSION:-$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | grep -m1 '"tag_name"' | cut -d'"' -f4)}"
+tag="${MD_VERSION:-}"
+if [ -z "$tag" ]; then
+  # Parsed in bash: piping curl into a reader that stops early fails under pipefail.
+  json=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest")
+  if [[ $json =~ \"tag_name\":[[:space:]]*\"([^\"]+)\" ]]; then tag=${BASH_REMATCH[1]}; fi
+fi
 [ -n "$tag" ] || { echo "Could not determine the latest version" >&2; exit 1; }
 archive="${BINARY}_${tag#v}_${os}_${arch}.tar.gz"
 base="https://github.com/${REPO}/releases/download/${tag}"
