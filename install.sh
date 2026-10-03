@@ -19,9 +19,11 @@ esac
 
 tag="${MD_VERSION:-}"
 if [ -z "$tag" ]; then
-  # Parsed in bash: piping curl into a reader that stops early fails under pipefail.
-  json=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest")
-  if [[ $json =~ \"tag_name\":[[:space:]]*\"([^\"]+)\" ]]; then tag=${BASH_REMATCH[1]}; fi
+  # /releases/latest redirects to /releases/tag/<tag>; unlike the API it is not
+  # rate-limited for anonymous callers on shared IPs.
+  latest_url=$(curl -fsSL -o /dev/null -w '%{url_effective}' "https://github.com/${REPO}/releases/latest")
+  tag=${latest_url##*/}
+  [[ $tag == v* ]] || tag=""
 fi
 [ -n "$tag" ] || { echo "Could not determine the latest version" >&2; exit 1; }
 archive="${BINARY}_${tag#v}_${os}_${arch}.tar.gz"
