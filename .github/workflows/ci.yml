@@ -37,6 +37,15 @@ jobs:
         with:
           version: latest
 
+  install-script:
+    name: Install script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck install.sh
+      # Runs the installer from this branch against the latest published release.
+      - run: MD_INSTALL_DIR="$RUNNER_TEMP/bin" bash install.sh && "$RUNNER_TEMP/bin/md" --version
+
   release-check:
     name: Release dry run
     runs-on: ubuntu-latest

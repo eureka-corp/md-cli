@@ -63,3 +63,20 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Installs the published release the way users do, so a broken installer or
+  # asset name fails here instead of on someone's machine.
+  verify:
+    needs: release
+    if: always() && needs.release.result == 'success'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install with the published install.sh
+        run: curl -fsSL "https://github.com/${{ github.repository }}/releases/latest/download/install.sh" | MD_INSTALL_DIR="$RUNNER_TEMP/bin" bash
+      - name: Check the installed version
+        run: |
+          "$RUNNER_TEMP/bin/md" --version
+          "$RUNNER_TEMP/bin/md" --help > /dev/null
