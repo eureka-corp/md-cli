@@ -59,7 +59,7 @@ func (e *APIError) Error() string {
 	case e.Status == http.StatusUnauthorized:
 		msg += " — check MD_TOKEN or run 'md setup'"
 	case e.Code == "keep_requires_owner":
-		msg += " — use a personal token from the My shares page (md setup)"
+		msg += " — use an API key from https://md.erk.im/settings (md setup)"
 	}
 	return msg
 }

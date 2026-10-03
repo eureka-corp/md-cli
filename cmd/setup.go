@@ -22,7 +22,7 @@ func newSetupCmd() *cobra.Command {
 		Short:   "Save and verify the upload token",
 		Long: `Save and verify the upload token.
 
-Create a personal token on https://md.erk.im/shares (sign in first) so your
+Create an API key on https://md.erk.im/settings (sign in first) so your
 shares belong to your account. Pass --token to skip the prompt.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {

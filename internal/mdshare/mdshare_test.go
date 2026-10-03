@@ -482,7 +482,7 @@ func TestShareID(t *testing.T) {
 }
 
 func TestAPIErrorHints(t *testing.T) {
-	if msg := (&APIError{Status: 400, Message: "no", Code: "keep_requires_owner"}).Error(); !strings.Contains(msg, "personal token") {
+	if msg := (&APIError{Status: 400, Message: "no", Code: "keep_requires_owner"}).Error(); !strings.Contains(msg, "API key") {
 		t.Errorf("keep_requires_owner hint missing: %q", msg)
 	}
 	if !IsNotFound(&APIError{Status: 404}) || IsNotFound(errors.New("x")) {
