@@ -22,10 +22,10 @@ Later, `md update` upgrades in place. From source: `make install`.
 
 ## Setup
 
-1. Sign in on https://md.erk.im/shares and create an upload token.
+1. Sign in on https://md.erk.im/settings and create an API key.
 2. Run `md setup` and paste it.
 
-With a personal token your shares belong to your account: they appear on the
+With an API key your shares belong to your account: they appear on the
 My shares page and in `md list`, and can be kept forever. If `orion md setup` was
 used before, `md` picks up that token and its remembered shares automatically.
 

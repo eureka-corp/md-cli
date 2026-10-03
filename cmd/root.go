@@ -25,7 +25,7 @@ func newRootCmd() *cobra.Command {
 		Long: `md uploads markdown files and folders to md.erk.im and prints a link.
 
 Links are readable by anyone who has them until they expire. With a personal
-token (create one on https://md.erk.im/shares) shares belong to your account
+token (an API key from https://md.erk.im/settings) shares belong to your account
 and can be listed, extended, kept forever, renamed and deleted from here.`,
 		Version:       buildinfo.Version,
 		SilenceUsage:  true,
