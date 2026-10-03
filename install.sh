@@ -37,7 +37,10 @@ curl -fsSL "${base}/checksums.txt" -o "${tmp}/checksums.txt"
 expected=$(grep " ${archive}\$" "${tmp}/checksums.txt" | cut -d' ' -f1)
 if command -v sha256sum >/dev/null 2>&1; then actual=$(sha256sum "${tmp}/${archive}" | cut -d' ' -f1)
 else actual=$(shasum -a 256 "${tmp}/${archive}" | cut -d' ' -f1); fi
-[ -n "$expected" ] && [ "$expected" = "$actual" ] || { echo "Checksum mismatch for ${archive}" >&2; exit 1; }
+if [ -z "$expected" ] || [ "$expected" != "$actual" ]; then
+  echo "Checksum mismatch for ${archive}" >&2
+  exit 1
+fi
 
 tar -xzf "${tmp}/${archive}" -C "$tmp" "$BINARY"
 mkdir -p "$INSTALL_DIR"
